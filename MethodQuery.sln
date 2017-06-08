@@ -5,6 +5,10 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MethodQuery", "MethodQuery\MethodQuery.csproj", "{B63EF543-A25D-43B5-9ADC-8395CA5726A6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MethodQuery.Tests", "MethodQuery.Tests\MethodQuery.Tests.csproj", "{18B3982A-7E55-45D2-AD67-98E4CE15958A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MethodQuery.Dapper", "MethodQuery.Dapper\MethodQuery.Dapper.csproj", "{C456882E-09E7-4EA2-9705-6A0E20534ED6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{B63EF543-A25D-43B5-9ADC-8395CA5726A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B63EF543-A25D-43B5-9ADC-8395CA5726A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B63EF543-A25D-43B5-9ADC-8395CA5726A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18B3982A-7E55-45D2-AD67-98E4CE15958A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18B3982A-7E55-45D2-AD67-98E4CE15958A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18B3982A-7E55-45D2-AD67-98E4CE15958A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18B3982A-7E55-45D2-AD67-98E4CE15958A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C456882E-09E7-4EA2-9705-6A0E20534ED6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C456882E-09E7-4EA2-9705-6A0E20534ED6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C456882E-09E7-4EA2-9705-6A0E20534ED6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C456882E-09E7-4EA2-9705-6A0E20534ED6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
