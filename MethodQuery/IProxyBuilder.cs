@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Castle.DynamicProxy;
+using MethodQuery.Ast;
 
 namespace MethodQuery
 {
@@ -28,7 +29,7 @@ namespace MethodQuery
         public TProxy Build<TProxy>() where TProxy : class
         {
             return new Castle.DynamicProxy.ProxyGenerator().CreateInterfaceProxyWithoutTarget<TProxy>(
-                new MethodQueryInterceptor(this.connectionFactory, this.entityMaterializerFactory)
+                new MethodQueryInterceptor(this.connectionFactory, this.entityMaterializerFactory, new AstFactory(), new AnsiSqlStatementBuilder())
             );
         }
     }
@@ -37,11 +38,15 @@ namespace MethodQuery
     {
         private readonly Func<IDbConnection> connectionFactory;
         private readonly IEntityMaterializerFactory entityMaterializerFactory;
+        private readonly ISqlStatementBuilder sqlStatementBuilder;
+        private MethodAstBuilder methodAstBuilder;
 
-        public MethodQueryInterceptor(Func<IDbConnection> connectionFactory, IEntityMaterializerFactory entityMaterializerFactory)
+        public MethodQueryInterceptor(Func<IDbConnection> connectionFactory, IEntityMaterializerFactory entityMaterializerFactory, IAstFactory astFactory, ISqlStatementBuilder sqlStatementBuilder)
         {
             this.connectionFactory = connectionFactory;
             this.entityMaterializerFactory = entityMaterializerFactory;
+            this.sqlStatementBuilder = sqlStatementBuilder;
+            this.methodAstBuilder = new MethodAstBuilder(astFactory);
         }
 
         public void Intercept(IInvocation invocation)
@@ -53,9 +58,12 @@ namespace MethodQuery
             var materializeMethod = entityMaterializer.GetType().
                 GetMethod(nameof(IEntityMaterializer<object>.Materialize), BindingFlags.Instance | BindingFlags.Public);
             var dbConnection = this.connectionFactory();
+
+            var ast = this.methodAstBuilder.BuildAst(invocation.Method);
+            var sqlStatement = this.sqlStatementBuilder.BuildStatement(ast);
             
             dbConnection.Open();
-            var result = materializeMethod.Invoke(entityMaterializer, new object[] { dbConnection, $"SELECT * FROM {entityType.Name}" });
+            var result = materializeMethod.Invoke(entityMaterializer, new object[] { dbConnection, sqlStatement });
             dbConnection.Close();
             var genericCastMethod = typeof(System.Linq.Enumerable).GetMethod(nameof(System.Linq.Enumerable.Cast), BindingFlags.Public | BindingFlags.Static);
             var castMethod = genericCastMethod.MakeGenericMethod(entityType);

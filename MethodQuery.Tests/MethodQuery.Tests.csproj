@@ -75,6 +75,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>TestDbDataSet.xsd</DependentUpon>
     </Compile>
+    <Compile Include="Tests\Ast\AstTests.cs" />
     <Compile Include="Tests\ProxyBuilder\BasicReadTests.cs" />
   </ItemGroup>
   <ItemGroup>
