@@ -58,6 +58,7 @@
     <Compile Include="Ast\SqlStatements.cs" />
     <Compile Include="IEntityMaterializer.cs" />
     <Compile Include="IProxyBuilder.cs" />
+    <Compile Include="MethodIntentParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

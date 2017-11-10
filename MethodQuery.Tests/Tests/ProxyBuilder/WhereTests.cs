@@ -44,10 +44,28 @@ namespace MethodQuery.Tests.Tests
             var entity = result.Single();
             Assert.AreEqual(2, entity.Id);
         }
+
+        [Test]
+        public void Where_WhenParameterNumeric_ReturnsExpectedItem()
+        {
+            this.dataSeedHelper.SeedTable(new Person()
+            {
+                Id = 1,
+                Name = "TestUser1"
+            }, new Person()
+            {
+                Id = 2,
+                Name = "TestUser2"
+            });
+            var result = this.repository.GetById(2);
+            
+            Assert.AreEqual(2, result.Id);
+        }
     }
 
     public interface IWhereRepository
     {
         IEnumerable<Person> Get(int id);
+        Person GetById(int id);
     }
 }

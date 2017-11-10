@@ -14,9 +14,9 @@ namespace MethodQuery
             this.astFactory = astFactory;
         }
 
-        public MethodAstResult BuildAst(MethodInfo method)
+        public MethodAstResult BuildAst(MethodIntent method)
         {
-            var entityType = method.ReturnType.GetGenericArguments().First();
+            var entityType = method.ReturnType;
             var properties = entityType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             var selectStatement = this.astFactory.Select(properties.Select(p => this.astFactory.ColumnIdentifier(p.Name)));
             var fromStatement = this.astFactory.From(new[] { this.astFactory.TableIdentifier(entityType.Name) });
@@ -25,9 +25,9 @@ namespace MethodQuery
 
             var result = new MethodAstResult();
             var parameters = new List<MethodAstParamMap>();
-            if (method.GetParameters().Length > 0)
+            if (method.Parameters.Length > 0)
             {
-                var parameterInfo = method.GetParameters().First();
+                var parameterInfo = method.Parameters.First();
                 var namedParameter = this.astFactory.NamedParameter(parameterInfo.Name);
                 parameters.Add(new MethodAstParamMap()
                 {

@@ -40,6 +40,7 @@ namespace MethodQuery
         private readonly IEntityMaterializerFactory entityMaterializerFactory;
         private readonly ISqlStatementBuilder sqlStatementBuilder;
         private MethodAstBuilder methodAstBuilder;
+        private MethodIntentParser methodIntentParser;
 
         public MethodQueryInterceptor(Func<IDbConnection> connectionFactory, IEntityMaterializerFactory entityMaterializerFactory, IAstFactory astFactory, ISqlStatementBuilder sqlStatementBuilder)
         {
@@ -47,11 +48,13 @@ namespace MethodQuery
             this.entityMaterializerFactory = entityMaterializerFactory;
             this.sqlStatementBuilder = sqlStatementBuilder;
             this.methodAstBuilder = new MethodAstBuilder(astFactory);
+            methodIntentParser = new MethodIntentParser();
         }
 
         public void Intercept(IInvocation invocation)
         {
-            var entityType = invocation.Method.ReturnType.GetGenericArguments().First();
+            var methodIntent = this.methodIntentParser.GetIntent(invocation.Method);
+            var entityType = methodIntent.ReturnType;
             var createMethod = this.entityMaterializerFactory.GetType().GetMethod(nameof(IEntityMaterializerFactory.Create), BindingFlags.Instance | BindingFlags.Public);
             var createEntityMethod = createMethod.MakeGenericMethod(entityType);
             var entityMaterializer = createEntityMethod.Invoke(this.entityMaterializerFactory, new object[0]);
@@ -59,7 +62,7 @@ namespace MethodQuery
                 GetMethod(nameof(IEntityMaterializer<object>.Materialize), BindingFlags.Instance | BindingFlags.Public);
             var dbConnection = this.connectionFactory();
 
-            var ast = this.methodAstBuilder.BuildAst(invocation.Method);
+            var ast = this.methodAstBuilder.BuildAst(methodIntent);
             var sqlStatement = this.sqlStatementBuilder.BuildStatement(ast.Ast);
             var parameters = ast.Parameters.Select(p => new Parameter()
             {
