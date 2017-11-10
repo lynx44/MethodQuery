@@ -60,19 +60,31 @@ namespace MethodQuery
             var dbConnection = this.connectionFactory();
 
             var ast = this.methodAstBuilder.BuildAst(invocation.Method);
-            var sqlStatement = this.sqlStatementBuilder.BuildStatement(ast);
+            var sqlStatement = this.sqlStatementBuilder.BuildStatement(ast.Ast);
+            var parameters = ast.Parameters.Select(p => new Parameter()
+            {
+                Identifier = p.AstNamedParameter.Identifier,
+                QuotedIdentifier = p.AstNamedParameter.QuotedIdentifier,
+                Value = this.GetParameterValue(invocation, p.MethodParameter)
+            });
             
             dbConnection.Open();
-            var result = materializeMethod.Invoke(entityMaterializer, new object[] { dbConnection, sqlStatement });
+            var result = materializeMethod.Invoke(entityMaterializer, new object[] { dbConnection, sqlStatement, parameters });
             dbConnection.Close();
             var genericCastMethod = typeof(System.Linq.Enumerable).GetMethod(nameof(System.Linq.Enumerable.Cast), BindingFlags.Public | BindingFlags.Static);
             var castMethod = genericCastMethod.MakeGenericMethod(entityType);
-
-
-
+            
             invocation.ReturnValue = castMethod.Invoke(null, new object[] { result });
         }
 
-        //invocation.Method.ReturnType.GetGenericTypeDefinition().GetInterfaces().Any(i => i == typeof(IEnumerable<>)) ? 
+        private object GetParameterValue(IInvocation invocation, ParameterInfo parameter)
+        {
+            return invocation.GetArgumentValue(
+                invocation.Method.GetParameters().
+                    Select((p, i) => new Tuple<ParameterInfo, int>(p, i)).
+                    First(t => t.Item1.Name == parameter.Name).
+                    Item2);
+        }
     }
+
 }

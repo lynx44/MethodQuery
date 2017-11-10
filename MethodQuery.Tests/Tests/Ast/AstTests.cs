@@ -61,5 +61,35 @@ namespace MethodQuery.Tests.Tests.Ast
 
             Assert.AreEqual("SELECT \"Id\", \"Name\" FROM \"Person\"", statement);
         }
+
+        [Test]
+        public void SelectWithWhereClause()
+        {
+            var ast = new AstNode[]
+            {
+                this.astFactory.Select(new List<AstNode>()
+                {
+                    this.astFactory.ColumnIdentifier("Id"),
+                    this.astFactory.ColumnIdentifier("Name")
+                }),
+                this.astFactory.From(new List<AstNode>()
+                {
+                    this.astFactory.TableIdentifier("Person")
+                }),
+                this.astFactory.Where(new List<AstNode>()
+                {
+                    this.astFactory.EqualsCondition(new List<AstNode>()
+                    {
+                        this.astFactory.ColumnIdentifier("Id"),
+                        this.astFactory.NamedParameter("id")
+                    })
+                })
+            };
+
+            var builder = new AnsiSqlStatementBuilder();
+            var statement = builder.BuildStatement(ast);
+
+            Assert.AreEqual("SELECT \"Id\", \"Name\" FROM \"Person\" WHERE \"Id\" = @id", statement);
+        }
     }
 }

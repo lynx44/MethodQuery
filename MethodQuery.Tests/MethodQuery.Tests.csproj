@@ -77,6 +77,7 @@
     </Compile>
     <Compile Include="Tests\Ast\AstTests.cs" />
     <Compile Include="Tests\ProxyBuilder\BasicReadTests.cs" />
+    <Compile Include="Tests\ProxyBuilder\WhereTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

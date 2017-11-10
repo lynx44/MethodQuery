@@ -50,8 +50,12 @@
   <ItemGroup>
     <Compile Include="Ast\AstFactory.cs" />
     <Compile Include="Ast\AstNode.cs" />
-    <Compile Include="Ast\AnsiSqlStatementBuilder.cs" />
-    <Compile Include="Ast\MethodAstBuilder.cs" />
+    <Compile Include="AnsiSqlStatementBuilder.cs" />
+    <Compile Include="Ast\Clauses.cs" />
+    <Compile Include="Ast\ComparisonOperators.cs" />
+    <Compile Include="MethodAstBuilder.cs" />
+    <Compile Include="Ast\ObjectIdentifiers.cs" />
+    <Compile Include="Ast\SqlStatements.cs" />
     <Compile Include="IEntityMaterializer.cs" />
     <Compile Include="IProxyBuilder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Dynamic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,9 +11,15 @@ namespace MethodQuery.Dapper
 {
     public class DapperEntityMaterializer<TResult> : IEntityMaterializer<TResult>
     {
-        public IEnumerable<TResult> Materialize(IDbConnection dbConnection, string sql)
+        public IEnumerable<TResult> Materialize(IDbConnection dbConnection, string sql, IEnumerable<Parameter> parameters)
         {
-            return dbConnection.Query<TResult>(sql);
+            var sqlParams = new DynamicParameters();
+            foreach (var parameter in parameters)
+            {
+                sqlParams.Add(parameter.QuotedIdentifier, parameter.Value);
+            }
+
+            return dbConnection.Query<TResult>(sql, (object) sqlParams);
         }
     }
 

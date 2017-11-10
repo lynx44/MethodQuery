@@ -13,14 +13,14 @@ namespace MethodQuery.Tests.Tests
     [TestFixture]
     public class BasicReadTests
     {
-        private ProxyBuilder proxyBuilder;
+        private MethodQuery.ProxyBuilder proxyBuilder;
         private IRepository repository;
         private DataSeedHelper dataSeedHelper;
 
         [SetUp]
         public void Setup()
         {
-            this.proxyBuilder = new ProxyBuilder(() => ConnectionFactory.TestDb, new DapperEntityMaterializerFactory());
+            this.proxyBuilder = new MethodQuery.ProxyBuilder(() => ConnectionFactory.TestDb, new DapperEntityMaterializerFactory());
             this.repository = this.proxyBuilder.Build<IRepository>();
             this.dataSeedHelper = new DataSeedHelper(ConnectionFactory.TestDb);
             this.dataSeedHelper.ClearTable(nameof(Person));
