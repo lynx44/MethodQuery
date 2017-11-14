@@ -25,24 +25,36 @@ namespace MethodQuery
 
             var result = new MethodAstResult();
             var parameters = new List<MethodAstParamMap>();
-            if (method.Parameters.Length > 0)
-            {
-                var parameterInfo = method.Parameters.First();
-                var namedParameter = this.astFactory.NamedParameter(parameterInfo.Name);
-                parameters.Add(new MethodAstParamMap()
+
+            if(method.Parameters.Length > 0) { 
+                var conditions = new List<AstNode>();
+                for (int i = 0; i < method.Parameters.Length; i++)
                 {
-                    AstNamedParameter = namedParameter,
-                    MethodParameter = parameterInfo
-                });
-                ast.Add(this.astFactory.Where(new List<AstNode> {
-                    this.astFactory.EqualsOperator(new List<AstNode>()
+                    var parameterInfo = method.Parameters.ElementAt(i);
+                    var namedParameter = this.astFactory.NamedParameter(parameterInfo.Name);
+                    parameters.Add(new MethodAstParamMap()
                     {
-                        this.astFactory.ColumnIdentifier(parameterInfo.Name),
-                        namedParameter
-                    })
+                        AstNamedParameter = namedParameter,
+                        MethodParameter = parameterInfo
+                    });
+
+                    conditions.Add(this.astFactory.EqualsOperator(new List<AstNode>()
+                        {
+                            this.astFactory.ColumnIdentifier(parameterInfo.Name),
+                            namedParameter
+                        }));
                 }
-                ));
+
+                if (parameters.Count > 1)
+                {
+                    ast.Add(this.astFactory.Where(new List<AstNode>() { this.astFactory.AndOperator(conditions) }));
+                }
+                else
+                {
+                    ast.Add(this.astFactory.Where(conditions));
+                }
             }
+
 
             result.Ast = ast;
             result.Parameters = parameters;
