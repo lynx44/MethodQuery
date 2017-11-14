@@ -61,11 +61,32 @@ namespace MethodQuery.Tests.Tests
             
             Assert.AreEqual(2, result.Id);
         }
+
+        [Test]
+        public void Where_WhenTwoParameters_ReturnsExpectedItem()
+        {
+            this.dataSeedHelper.SeedTable(new Person()
+            {
+                Id = 1,
+                Name = "TestUser",
+                Address = "123 Fake St"
+            }, new Person()
+            {
+                Id = 2,
+                Name = "TestUser",
+                Address = "456 Fake St"
+            });
+
+            var result = this.repository.GetByNameAndAddress("TestUser", "456 Fake St");
+            
+            Assert.AreEqual(2, result.Id);
+        }
     }
 
     public interface IWhereRepository
     {
         IEnumerable<Person> Get(int id);
         Person GetById(int id);
+        Person GetByNameAndAddress(string name, string address);
     }
 }

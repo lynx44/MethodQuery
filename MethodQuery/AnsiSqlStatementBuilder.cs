@@ -25,7 +25,7 @@ namespace MethodQuery
                 {
                     var astNode = nodes.ElementAt(i);
                     
-                    if ((astNode as ComparisonOperator) == null)
+                    if ((astNode as Operator) == null)
                     {
                         sb.Append($"{astNode.QuotedIdentifier}");
                     }
@@ -39,7 +39,7 @@ namespace MethodQuery
                         sb.Append(" ");
                     }
 
-                    if ((astNode as ComparisonOperator) != null)
+                    if ((astNode as Operator) != null)
                     {
                         this.TraverseAst(sb, astNode, astNode.Args.Take(1));
                         sb.Append($"{astNode.QuotedIdentifier} ");

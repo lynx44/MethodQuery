@@ -35,7 +35,7 @@ namespace MethodQuery
                     MethodParameter = parameterInfo
                 });
                 ast.Add(this.astFactory.Where(new List<AstNode> {
-                    this.astFactory.EqualsCondition(new List<AstNode>()
+                    this.astFactory.EqualsOperator(new List<AstNode>()
                     {
                         this.astFactory.ColumnIdentifier(parameterInfo.Name),
                         namedParameter

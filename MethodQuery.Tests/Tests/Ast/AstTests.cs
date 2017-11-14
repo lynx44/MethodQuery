@@ -78,7 +78,7 @@ namespace MethodQuery.Tests.Tests.Ast
                 }),
                 this.astFactory.Where(new List<AstNode>()
                 {
-                    this.astFactory.EqualsCondition(new List<AstNode>()
+                    this.astFactory.EqualsOperator(new List<AstNode>()
                     {
                         this.astFactory.ColumnIdentifier("Id"),
                         this.astFactory.NamedParameter("id")
@@ -90,6 +90,42 @@ namespace MethodQuery.Tests.Tests.Ast
             var statement = builder.BuildStatement(ast);
 
             Assert.AreEqual("SELECT \"Id\", \"Name\" FROM \"Person\" WHERE \"Id\" = @id", statement);
+        }
+
+        [Test]
+        public void SelectWithWhereClauseAndTwoParameters()
+        {
+            var ast = new AstNode[]
+            {
+                this.astFactory.Select(new List<AstNode>()
+                {
+                    this.astFactory.ColumnIdentifier("Id")
+                }),
+                this.astFactory.From(new List<AstNode>()
+                {
+                    this.astFactory.TableIdentifier("Person")
+                }),
+                this.astFactory.Where(new List<AstNode>()
+                {
+                    this.astFactory.AndOperator(new List<AstNode>() {
+                        this.astFactory.EqualsOperator(new List<AstNode>()
+                        {
+                            this.astFactory.ColumnIdentifier("Id"),
+                            this.astFactory.NamedParameter("id")
+                        }),
+                        this.astFactory.EqualsOperator(new List<AstNode>()
+                        {
+                            this.astFactory.ColumnIdentifier("Name"),
+                            this.astFactory.NamedParameter("name")
+                        })
+                    })
+                })
+            };
+
+            var builder = new AnsiSqlStatementBuilder();
+            var statement = builder.BuildStatement(ast);
+
+            Assert.AreEqual("SELECT \"Id\" FROM \"Person\" WHERE \"Id\" = @id AND \"Name\" = @name", statement);
         }
     }
 }

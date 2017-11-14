@@ -11,7 +11,8 @@ namespace MethodQuery.Ast
         TableIdentifier TableIdentifier(string tableName);
         ColumnIdentifier ColumnIdentifier(string columnName);
         NamedParameter NamedParameter(string parameterName);
-        Equals EqualsCondition(List<AstNode> args);
+        Equals EqualsOperator(List<AstNode> args);
+        AndOperator AndOperator(List<AstNode> args);
     }
 
     public class AstFactory : IAstFactory
@@ -28,6 +29,8 @@ namespace MethodQuery.Ast
         public ColumnIdentifier ColumnIdentifier(string columnName) => new ColumnIdentifier(columnName);
         public NamedParameter NamedParameter(string parameterName) => new NamedParameter(parameterName);
 
-        public Equals EqualsCondition(List<AstNode> args) => new Equals(args);
+        // operators
+        public Equals EqualsOperator(List<AstNode> args) => new Equals(args);
+        public AndOperator AndOperator(List<AstNode> args) => new AndOperator(args);
     }
 }

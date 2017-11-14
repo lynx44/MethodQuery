@@ -28,4 +28,19 @@ namespace MethodQuery.Ast
             this.Identifier = "=";
         }
     }
+
+    public class LogicalOperator : Operator
+    {
+        public LogicalOperator(List<AstNode> args) : base(args)
+        {
+        }
+    }
+
+    public class AndOperator : LogicalOperator
+    {
+        public AndOperator(List<AstNode> args) : base(args)
+        {
+            this.Identifier = "AND";
+        }
+    }
 }

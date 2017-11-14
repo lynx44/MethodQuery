@@ -76,8 +76,21 @@ namespace MethodQuery
             dbConnection.Close();
             var genericCastMethod = typeof(System.Linq.Enumerable).GetMethod(nameof(System.Linq.Enumerable.Cast), BindingFlags.Public | BindingFlags.Static);
             var castMethod = genericCastMethod.MakeGenericMethod(entityType);
-            
-            invocation.ReturnValue = castMethod.Invoke(null, new object[] { result });
+
+            var enumerableResult = castMethod.Invoke(null, new object[] { result });
+
+            var returnType = invocation.Method.ReturnType;
+            if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+            {
+                invocation.ReturnValue = enumerableResult;
+            }
+            else
+            {
+                var genericSingleMethod = typeof(System.Linq.Enumerable).GetMethods().
+                    First(m => m.Name == nameof(System.Linq.Enumerable.Single) && m.GetGenericArguments().Length == 1);
+                var singleMethod = genericSingleMethod.MakeGenericMethod(entityType);
+                invocation.ReturnValue = singleMethod.Invoke(null, new object[] { enumerableResult }); ;
+            }
         }
 
         private object GetParameterValue(IInvocation invocation, ParameterInfo parameter)
