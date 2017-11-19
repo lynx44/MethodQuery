@@ -41,13 +41,14 @@ namespace MethodQuery
         private readonly ISqlStatementBuilder sqlStatementBuilder;
         private MethodAstBuilder methodAstBuilder;
         private MethodIntentParser methodIntentParser;
+        private static readonly ParameterDescriptorParser _parameterDescriptorParser = new ParameterDescriptorParser();
 
         public MethodQueryInterceptor(Func<IDbConnection> connectionFactory, IEntityMaterializerFactory entityMaterializerFactory, IAstFactory astFactory, ISqlStatementBuilder sqlStatementBuilder)
         {
             this.connectionFactory = connectionFactory;
             this.entityMaterializerFactory = entityMaterializerFactory;
             this.sqlStatementBuilder = sqlStatementBuilder;
-            this.methodAstBuilder = new MethodAstBuilder(astFactory);
+            this.methodAstBuilder = new MethodAstBuilder(astFactory, _parameterDescriptorParser);
             methodIntentParser = new MethodIntentParser();
         }
 

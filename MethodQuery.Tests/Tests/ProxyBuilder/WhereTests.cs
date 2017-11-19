@@ -107,6 +107,27 @@ namespace MethodQuery.Tests.Tests
             Assert.AreEqual(2, results.Count());
             Assert.IsTrue(Enumerable.SequenceEqual(new [] { 1, 3 }, results.Select(r => r.Id)));
         }
+
+        [Test]
+        public void Where_WhenParameterIncludesOrPrefix_UsesOrOperator()
+        {
+            this.dataSeedHelper.SeedTable(new Person()
+            {
+                Id = 1,
+                Name = "TestUser",
+                Address = "123 Fake St"
+            }, new Person()
+            {
+                Id = 2,
+                Name = "TestUser2",
+                Address = "456 Fake St"
+            });
+
+            var results = this.repository.GetByNameOrAddress("TestUser", "456 Fake St");
+
+            Assert.AreEqual(2, results.Count());
+            Assert.IsTrue(Enumerable.SequenceEqual(new [] { 1, 2 }, results.Select(s => s.Id)));
+        }
     }
 
     public interface IWhereRepository
@@ -115,5 +136,6 @@ namespace MethodQuery.Tests.Tests
         Person GetById(int id);
         Person GetByNameAndAddress(string name, string address);
         IEnumerable<Person> Get(IEnumerable<int> id);
+        IEnumerable<Person> GetByNameOrAddress(string name, string orAddress);
     }
 }

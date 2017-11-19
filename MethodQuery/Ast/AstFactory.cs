@@ -13,6 +13,7 @@ namespace MethodQuery.Ast
         NamedParameter NamedParameter(string parameterName);
         EqualsOperator EqualsOperator(List<AstNode> args);
         AndOperator AndOperator(List<AstNode> args);
+        OrOperator OrOperator(List<AstNode> args);
 
         InPredicate InPredicate(List<AstNode> args);
     }
@@ -34,6 +35,7 @@ namespace MethodQuery.Ast
         // operators
         public EqualsOperator EqualsOperator(List<AstNode> args) => new EqualsOperator(args);
         public AndOperator AndOperator(List<AstNode> args) => new AndOperator(args);
+        public OrOperator OrOperator(List<AstNode> args) => new OrOperator(args);
 
         // predicates
         public InPredicate InPredicate(List<AstNode> args) => new InPredicate(args);

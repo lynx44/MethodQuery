@@ -43,4 +43,12 @@ namespace MethodQuery.Ast
             this.Identifier = "AND";
         }
     }
+
+    public class OrOperator : LogicalOperator
+    {
+        public OrOperator(List<AstNode> args) : base(args)
+        {
+            this.Identifier = "OR";
+        }
+    }
 }

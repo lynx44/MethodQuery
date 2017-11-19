@@ -14,7 +14,11 @@ namespace MethodQuery.Ast
         }
 
         public string Identifier { get; set; }
-        public virtual string QuotedIdentifier => this.Identifier;
+        public virtual string QuotedIdentifier
+        {
+            get { return this.Identifier; }
+            set { this.Identifier = value; }
+        }
 
         public List<AstNode> Args { get; }
     }

@@ -29,11 +29,18 @@ namespace MethodQuery.Ast
 
     public class NamedParameter : AstNode
     {
-        public NamedParameter(string parameterName)
+        private readonly string quotedIdentifier;
+
+        public NamedParameter(string parameterName) : this(parameterName, parameterName)
         {
-            this.Identifier = parameterName;
         }
 
-        public override string QuotedIdentifier => $"@{this.Identifier}";
+        public NamedParameter(string parameterName, string columnName)
+        {
+            this.Identifier = columnName;
+            this.quotedIdentifier = $"@{parameterName}";
+        }
+
+        public override string QuotedIdentifier => this.quotedIdentifier;
     }
 }

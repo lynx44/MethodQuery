@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using MethodQuery.Ast;
 
 namespace MethodQuery
@@ -8,10 +10,12 @@ namespace MethodQuery
     public class MethodAstBuilder
     {
         private readonly IAstFactory astFactory;
+        private readonly ParameterDescriptorParser parameterDescriptorParser;
 
-        public MethodAstBuilder(IAstFactory astFactory)
+        public MethodAstBuilder(IAstFactory astFactory, ParameterDescriptorParser parameterDescriptorParser)
         {
             this.astFactory = astFactory;
+            this.parameterDescriptorParser = parameterDescriptorParser;
         }
 
         public MethodAstResult BuildAst(MethodIntent method)
@@ -28,45 +32,54 @@ namespace MethodQuery
 
             if(method.Parameters.Length > 0) { 
                 var conditions = new List<AstNode>();
+                Func<List<AstNode>, AstNode> operatorMethod = this.astFactory.AndOperator;
                 for (int i = 0; i < method.Parameters.Length; i++)
                 {
                     var parameterInfo = method.Parameters.ElementAt(i);
-                    var namedParameter = this.astFactory.NamedParameter(parameterInfo.Name);
+                    var parameterDescriptor = this.parameterDescriptorParser.Describe(parameterInfo);
+                    var namedParameter = this.astFactory.NamedParameter(parameterDescriptor.ParameterName);
                     parameters.Add(new MethodAstParamMap()
                     {
                         AstNamedParameter = namedParameter,
                         MethodParameter = parameterInfo
                     });
 
+                    AstNode condition;
                     if (parameterInfo.ParameterType != typeof(string) && typeof(System.Collections.IEnumerable).IsAssignableFrom(parameterInfo.ParameterType))
                     {
-                        conditions.Add(this.astFactory.InPredicate(new List<AstNode>()
+                        condition = this.astFactory.InPredicate(new List<AstNode>()
                         {
-                            this.astFactory.ColumnIdentifier(parameterInfo.Name),
+                            this.astFactory.ColumnIdentifier(parameterDescriptor.ColumnName),
                             namedParameter
-                        }));
+                        });
                     }
                     else
                     {
-                        conditions.Add(this.astFactory.EqualsOperator(new List<AstNode>()
+                        condition = this.astFactory.EqualsOperator(new List<AstNode>()
                         {
-                            this.astFactory.ColumnIdentifier(parameterInfo.Name),
+                            this.astFactory.ColumnIdentifier(parameterDescriptor.ColumnName),
                             namedParameter
-                        }));
+                        });
                     }
+
+                    if (parameterDescriptor.Attributes.HasFlag(ParameterDescriptorAttributes.OrOperator))
+                    {
+                        operatorMethod = this.astFactory.OrOperator;
+                    }
+
+                    conditions.Add(condition);
                 }
 
                 if (parameters.Count > 1)
                 {
-                    ast.Add(this.astFactory.Where(new List<AstNode>() { this.astFactory.AndOperator(conditions) }));
+                    ast.Add(this.astFactory.Where(new List<AstNode>() { operatorMethod(conditions) }));
                 }
                 else
                 {
                     ast.Add(this.astFactory.Where(conditions));
                 }
             }
-
-
+            
             result.Ast = ast;
             result.Parameters = parameters;
             return result;
@@ -83,5 +96,49 @@ namespace MethodQuery
     {
         public NamedParameter AstNamedParameter { get; set; }
         public ParameterInfo MethodParameter { get; set; }
+        public ParameterDescriptor ParameterDescriptor { get; set; }
+    }
+
+    public class ParameterDescriptor
+    {
+        public string ColumnName { get; set; }
+        public string ParameterName { get; set; }
+        public ParameterDescriptorAttributes Attributes { get; set; }
+    }
+
+    [Flags]
+    public enum ParameterDescriptorAttributes
+    {
+        None,
+        OrOperator
+    }
+
+    public class ParameterDescriptorParser
+    {
+        public ParameterDescriptor Describe(ParameterInfo parameter)
+        {
+            var columnName = parameter.Name;
+            var isOrOperator = usesOrOperatorConvention(parameter);
+            if (isOrOperator)
+            {
+                columnName = 
+                    parameter.Name
+                        .TrimStart("or".ToCharArray());
+                columnName = char.ToLowerInvariant(columnName[0]) + columnName.Substring(1);
+            }
+
+            return new ParameterDescriptor()
+            {
+                ColumnName = columnName,
+                ParameterName = columnName,
+                Attributes = isOrOperator ? ParameterDescriptorAttributes.OrOperator : 0
+            };
+        }
+
+        private static bool usesOrOperatorConvention(ParameterInfo parameter)
+        {
+            return parameter.Name.StartsWith("or", StringComparison.InvariantCultureIgnoreCase) &&
+                   char.IsUpper(parameter.Name.TrimStart("or".ToCharArray())[0]);
+        }
     }
 }

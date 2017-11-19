@@ -44,9 +44,12 @@ namespace MethodQuery
                     if (isOperator || isPredicate)
                     {
                         this.TraverseAst(sb, astNode, astNode.Args.Take(1), false);
-                        sb.Append($"{astNode.QuotedIdentifier} ");
-                        
-                        this.TraverseAst(sb, astNode, astNode.Args.Skip(1), false);
+                        if (!isOperator || (isOperator && astNode.Args.Skip(1).Any()))
+                        {
+                            sb.Append($"{astNode.QuotedIdentifier} ");
+
+                            this.TraverseAst(sb, astNode, astNode.Args.Skip(1), false);
+                        }
                     }
                     else
                     {
