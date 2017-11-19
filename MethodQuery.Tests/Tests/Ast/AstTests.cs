@@ -127,5 +127,35 @@ namespace MethodQuery.Tests.Tests.Ast
 
             Assert.AreEqual("SELECT \"Id\" FROM \"Person\" WHERE \"Id\" = @id AND \"Name\" = @name", statement);
         }
+
+        [Test]
+        public void SelectWithWhereInClause()
+        {
+            var ast = new AstNode[]
+            {
+                this.astFactory.Select(new List<AstNode>()
+                {
+                    this.astFactory.ColumnIdentifier("Id"),
+                    this.astFactory.ColumnIdentifier("Name")
+                }),
+                this.astFactory.From(new List<AstNode>()
+                {
+                    this.astFactory.TableIdentifier("Person")
+                }),
+                this.astFactory.Where(new List<AstNode>()
+                {
+                    this.astFactory.InPredicate(new List<AstNode>()
+                    {
+                        this.astFactory.ColumnIdentifier("Id"),
+                        this.astFactory.NamedParameter("ids")
+                    })
+                })
+            };
+
+            var builder = new AnsiSqlStatementBuilder();
+            var statement = builder.BuildStatement(ast);
+
+            Assert.AreEqual("SELECT \"Id\", \"Name\" FROM \"Person\" WHERE \"Id\" IN @ids", statement);
+        }
     }
 }

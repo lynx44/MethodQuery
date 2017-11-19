@@ -21,9 +21,9 @@ namespace MethodQuery.Ast
         }
     }
 
-    public class Equals : ComparisonOperator
+    public class EqualsOperator : ComparisonOperator
     {
-        public Equals(List<AstNode> args) : base(args)
+        public EqualsOperator(List<AstNode> args) : base(args)
         {
             this.Identifier = "=";
         }

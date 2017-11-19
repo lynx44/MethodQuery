@@ -53,6 +53,7 @@
     <Compile Include="AnsiSqlStatementBuilder.cs" />
     <Compile Include="Ast\Clauses.cs" />
     <Compile Include="Ast\Operators.cs" />
+    <Compile Include="Ast\Predicates.cs" />
     <Compile Include="MethodAstBuilder.cs" />
     <Compile Include="Ast\ObjectIdentifiers.cs" />
     <Compile Include="Ast\SqlStatements.cs" />

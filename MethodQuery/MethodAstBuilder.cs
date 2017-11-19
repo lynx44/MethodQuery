@@ -38,11 +38,22 @@ namespace MethodQuery
                         MethodParameter = parameterInfo
                     });
 
-                    conditions.Add(this.astFactory.EqualsOperator(new List<AstNode>()
+                    if (parameterInfo.ParameterType != typeof(string) && typeof(System.Collections.IEnumerable).IsAssignableFrom(parameterInfo.ParameterType))
+                    {
+                        conditions.Add(this.astFactory.InPredicate(new List<AstNode>()
                         {
                             this.astFactory.ColumnIdentifier(parameterInfo.Name),
                             namedParameter
                         }));
+                    }
+                    else
+                    {
+                        conditions.Add(this.astFactory.EqualsOperator(new List<AstNode>()
+                        {
+                            this.astFactory.ColumnIdentifier(parameterInfo.Name),
+                            namedParameter
+                        }));
+                    }
                 }
 
                 if (parameters.Count > 1)

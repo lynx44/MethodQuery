@@ -81,6 +81,32 @@ namespace MethodQuery.Tests.Tests
             
             Assert.AreEqual(2, result.Id);
         }
+
+        [Test]
+        public void Where_WhenParameterIsEnumerable_ReturnsMultipleItems()
+        {
+            this.dataSeedHelper.SeedTable(new Person()
+            {
+                Id = 1,
+                Name = "TestUser1",
+                Address = "123 Fake St"
+            }, new Person()
+            {
+                Id = 2,
+                Name = "TestUser2",
+                Address = "456 Fake St"
+            }, new Person()
+            {
+                Id = 3,
+                Name = "TestUser3",
+                Address = "789 Fake St"
+            });
+
+            var results = this.repository.Get(new int[] { 1, 3 });
+
+            Assert.AreEqual(2, results.Count());
+            Assert.IsTrue(Enumerable.SequenceEqual(new [] { 1, 3 }, results.Select(r => r.Id)));
+        }
     }
 
     public interface IWhereRepository
@@ -88,5 +114,6 @@ namespace MethodQuery.Tests.Tests
         IEnumerable<Person> Get(int id);
         Person GetById(int id);
         Person GetByNameAndAddress(string name, string address);
+        IEnumerable<Person> Get(IEnumerable<int> id);
     }
 }

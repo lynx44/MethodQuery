@@ -11,8 +11,10 @@ namespace MethodQuery.Ast
         TableIdentifier TableIdentifier(string tableName);
         ColumnIdentifier ColumnIdentifier(string columnName);
         NamedParameter NamedParameter(string parameterName);
-        Equals EqualsOperator(List<AstNode> args);
+        EqualsOperator EqualsOperator(List<AstNode> args);
         AndOperator AndOperator(List<AstNode> args);
+
+        InPredicate InPredicate(List<AstNode> args);
     }
 
     public class AstFactory : IAstFactory
@@ -30,7 +32,10 @@ namespace MethodQuery.Ast
         public NamedParameter NamedParameter(string parameterName) => new NamedParameter(parameterName);
 
         // operators
-        public Equals EqualsOperator(List<AstNode> args) => new Equals(args);
+        public EqualsOperator EqualsOperator(List<AstNode> args) => new EqualsOperator(args);
         public AndOperator AndOperator(List<AstNode> args) => new AndOperator(args);
+
+        // predicates
+        public InPredicate InPredicate(List<AstNode> args) => new InPredicate(args);
     }
 }
