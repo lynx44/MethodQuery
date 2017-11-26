@@ -128,6 +128,41 @@ namespace MethodQuery.Tests.Tests
             Assert.AreEqual(2, results.Count());
             Assert.IsTrue(Enumerable.SequenceEqual(new [] { 1, 2 }, results.Select(s => s.Id)));
         }
+
+        [Test]
+        public void Where_WhenParameterIncludesMixedOrPrefixes_UsesExpectedOperators()
+        {
+            this.dataSeedHelper.SeedTable(new Person()
+            {
+                Id = 1,
+                Name = "TestUser",
+                Address = "123 Fake St",
+                City = "Seattle"
+            }, new Person()
+            {
+                Id = 2,
+                Name = "TestUser2",
+                Address = "123 Fake St",
+                City = "Seattle"
+            }, new Person()
+            {
+                Id = 3,
+                Name = "TestUser",
+                Address = "456 Fake St",
+                City = "Seattle"
+            }, new Person()
+            {
+                Id = 4,
+                Name = "TestUser3",
+                Address = "456 Fake St",
+                City = "Portland"
+            });
+
+            var results = this.repository.GetByAddressAndCityOrName("123 Fake St", "Seattle", "TestUser");
+
+            Assert.AreEqual(3, results.Count());
+            Assert.IsTrue(Enumerable.SequenceEqual(new [] { 1, 2, 3 }, results.Select(s => s.Id)));
+        }
     }
 
     public interface IWhereRepository
@@ -137,5 +172,6 @@ namespace MethodQuery.Tests.Tests
         Person GetByNameAndAddress(string name, string address);
         IEnumerable<Person> Get(IEnumerable<int> id);
         IEnumerable<Person> GetByNameOrAddress(string name, string orAddress);
+        IEnumerable<Person> GetByAddressAndCityOrName(string address, string city, string orName);
     }
 }
