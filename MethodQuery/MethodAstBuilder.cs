@@ -32,7 +32,9 @@ namespace MethodQuery
 
             if(method.Parameters.Length > 0) { 
                 var conditions = new List<AstNode>();
-                Func<List<AstNode>, AstNode> operatorMethod = this.astFactory.AndOperator;
+                var allConditions = conditions;
+                
+                Func<List<AstNode>, AstNode> operatorMethod = null;
                 for (int i = 0; i < method.Parameters.Length; i++)
                 {
                     var parameterInfo = method.Parameters.ElementAt(i);
@@ -62,22 +64,37 @@ namespace MethodQuery
                         });
                     }
 
+                    var previousOperatorMethod = operatorMethod;
                     if (parameterDescriptor.Attributes.HasFlag(ParameterDescriptorAttributes.OrOperator))
                     {
                         operatorMethod = this.astFactory.OrOperator;
+                    }
+                    else
+                    {
+                        operatorMethod = this.astFactory.AndOperator;
+                    }
+
+                    if (previousOperatorMethod != operatorMethod)
+                    {
+                        var subConditions = new List<AstNode>();
+                        conditions.Add(operatorMethod(subConditions));
+
+                        conditions = subConditions;
                     }
 
                     conditions.Add(condition);
                 }
 
-                if (parameters.Count > 1)
-                {
-                    ast.Add(this.astFactory.Where(new List<AstNode>() { operatorMethod(conditions) }));
-                }
-                else
-                {
-                    ast.Add(this.astFactory.Where(conditions));
-                }
+                ast.Add(this.astFactory.Where(allConditions));
+
+                //                if (parameters.Count > 1)
+                //                {
+                //                    ast.Add(this.astFactory.Where(new List<AstNode>() { operatorMethod(conditions) }));
+                //                }
+                //                else
+                //                {
+                //                    ast.Add(this.astFactory.Where(conditions));
+                //                }
             }
             
             result.Ast = ast;

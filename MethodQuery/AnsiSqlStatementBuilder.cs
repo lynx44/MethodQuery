@@ -14,7 +14,9 @@ namespace MethodQuery
     {
         public string BuildStatement(IEnumerable<AstNode> nodes)
         {
-            return this.TraverseAst(new StringBuilder(), null, nodes, false).ToString().Trim();
+            var stringBuilder = this.TraverseAst(new StringBuilder(), null, nodes, false);
+            stringBuilder.Replace(" )", ")");
+            return stringBuilder.ToString().Trim();
         }
 
         private StringBuilder TraverseAst(StringBuilder sb, AstNode parentNode, IEnumerable<AstNode> nodes, bool isListLogicallyGrouped)
@@ -36,13 +38,17 @@ namespace MethodQuery
                     {
                         sb.Append(", ");
                     }
-                    else if((sb.Length == 0 || sb[sb.Length - 1] != ' ') && (!isListLogicallyGrouped || i != nodes.Count() - 1))
+                    else if((sb.Length == 0 || (sb[sb.Length - 1] != ' ' && sb[sb.Length - 1] != '(')) && (!isListLogicallyGrouped || i != nodes.Count() - 1))
                     {
                         sb.Append(" ");
                     }
 
                     if (isOperator || isPredicate)
                     {
+                        if (isOperator)
+                        {
+                            sb.Append("(");
+                        }
                         this.TraverseAst(sb, astNode, astNode.Args.Take(1), false);
                         var remainingArgs = astNode.Args.Skip(1);
                         if (!isOperator)
@@ -50,13 +56,15 @@ namespace MethodQuery
                             sb.Append($"{astNode.QuotedIdentifier} ");
 
                             this.TraverseAst(sb, astNode, remainingArgs, false);
-                        } else if (isOperator && remainingArgs.Any())
+                        } else
                         {
                             foreach (var arg in remainingArgs)
                             {
                                 sb.Append($"{astNode.QuotedIdentifier} ");
                                 this.TraverseAst(sb, astNode, new [] { arg }, false);
                             }
+
+                            sb.Append(") ");
                         }
                     }
                     else

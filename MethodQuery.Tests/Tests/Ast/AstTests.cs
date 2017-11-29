@@ -89,7 +89,7 @@ namespace MethodQuery.Tests.Tests.Ast
             var builder = new AnsiSqlStatementBuilder();
             var statement = builder.BuildStatement(ast);
 
-            Assert.AreEqual("SELECT \"Id\", \"Name\" FROM \"Person\" WHERE \"Id\" = @id", statement);
+            Assert.AreEqual("SELECT \"Id\", \"Name\" FROM \"Person\" WHERE (\"Id\" = @id)", statement);
         }
 
         [Test]
@@ -125,7 +125,7 @@ namespace MethodQuery.Tests.Tests.Ast
             var builder = new AnsiSqlStatementBuilder();
             var statement = builder.BuildStatement(ast);
 
-            Assert.AreEqual("SELECT \"Id\" FROM \"Person\" WHERE \"Id\" = @id AND \"Name\" = @name", statement);
+            Assert.AreEqual("SELECT \"Id\" FROM \"Person\" WHERE ((\"Id\" = @id) AND (\"Name\" = @name))", statement);
         }
 
         [Test]
@@ -193,11 +193,11 @@ namespace MethodQuery.Tests.Tests.Ast
             var builder = new AnsiSqlStatementBuilder();
             var statement = builder.BuildStatement(ast);
 
-            Assert.AreEqual("SELECT \"Id\" FROM \"Person\" WHERE \"Id\" = @id OR \"Name\" = @name", statement);
+            Assert.AreEqual("SELECT \"Id\" FROM \"Person\" WHERE (((\"Id\" = @id) OR (\"Name\" = @name)))", statement);
         }
 
         [Test]
-        public void SelectWithWhereClauseWithOperatorWithMultipleArgs()
+        public void SelectWithWhereClause_AndWithNextedOrs()
         {
             var ast = new AstNode[]
             {
@@ -236,7 +236,52 @@ namespace MethodQuery.Tests.Tests.Ast
             var builder = new AnsiSqlStatementBuilder();
             var statement = builder.BuildStatement(ast);
 
-            Assert.AreEqual("SELECT \"Id\" FROM \"Person\" WHERE \"Id\" = @id OR \"Name\" = @name OR \"Address\" = @address", statement);
+            Assert.AreEqual("SELECT \"Id\" FROM \"Person\" WHERE (((\"Id\" = @id) OR (\"Name\" = @name) OR (\"Address\" = @address)))", statement);
+        }
+
+        [Test]
+        public void SelectWithWhereClauseWithOperator_OrWithNestedAnds()
+        {
+            var ast = new AstNode[]
+            {
+                this.astFactory.Select(new List<AstNode>()
+                {
+                    this.astFactory.ColumnIdentifier("Id")
+                }),
+                this.astFactory.From(new List<AstNode>()
+                {
+                    this.astFactory.TableIdentifier("Person")
+                }),
+                this.astFactory.Where(new List<AstNode>()
+                {
+                    this.astFactory.OrOperator(new List<AstNode>()
+                    {
+                        this.astFactory.AndOperator(new List<AstNode>()
+                        {
+                            this.astFactory.EqualsOperator(new List<AstNode>()
+                            {
+                                this.astFactory.ColumnIdentifier("Id"),
+                                this.astFactory.NamedParameter("id")
+                            }),
+                            this.astFactory.EqualsOperator(new List<AstNode>()
+                            {
+                                this.astFactory.ColumnIdentifier("Name"),
+                                this.astFactory.NamedParameter("name")
+                            })
+                        }),
+                        this.astFactory.EqualsOperator(new List<AstNode>()
+                        {
+                            this.astFactory.ColumnIdentifier("Address"),
+                            this.astFactory.NamedParameter("address")
+                        })
+                    })
+                })
+            };
+
+            var builder = new AnsiSqlStatementBuilder();
+            var statement = builder.BuildStatement(ast);
+
+            Assert.AreEqual("SELECT \"Id\" FROM \"Person\" WHERE (((\"Id\" = @id) AND (\"Name\" = @name)) OR (\"Address\" = @address))", statement);
         }
     }
 }

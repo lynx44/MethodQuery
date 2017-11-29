@@ -154,7 +154,7 @@ namespace MethodQuery.Tests.Tests
             {
                 Id = 4,
                 Name = "TestUser3",
-                Address = "456 Fake St",
+                Address = "123 Fake St",
                 City = "Portland"
             });
 
