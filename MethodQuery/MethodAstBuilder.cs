@@ -34,7 +34,6 @@ namespace MethodQuery
                 var conditions = new List<AstNode>();
                 var allConditions = conditions;
                 
-                Func<List<AstNode>, AstNode> operatorMethod = null;
                 for (int i = 0; i < method.Parameters.Length; i++)
                 {
                     var parameterInfo = method.Parameters.ElementAt(i);
@@ -64,20 +63,21 @@ namespace MethodQuery
                         });
                     }
 
-                    var previousOperatorMethod = operatorMethod;
-                    if (parameterDescriptor.Attributes.HasFlag(ParameterDescriptorAttributes.OrOperator))
-                    {
-                        operatorMethod = this.astFactory.OrOperator;
-                    }
-                    else
-                    {
-                        operatorMethod = this.astFactory.AndOperator;
-                    }
+//                    var previousOperatorMethod = operatorMethod;
+//                    if (parameterDescriptor.Attributes.HasFlag(ParameterDescriptorAttributes.OrOperator))
+//                    {
+//                        operatorMethod = this.astFactory.OrOperator;
+//                    }
+//                    else
+//                    {
+//                        operatorMethod = this.astFactory.AndOperator;
+//                    }
 
-                    if (previousOperatorMethod != operatorMethod)
+                    if (!conditions.Any() || 
+                        parameterDescriptor.Attributes.HasFlag(ParameterDescriptorAttributes.OrOperator))
                     {
                         var subConditions = new List<AstNode>();
-                        conditions.Add(operatorMethod(subConditions));
+                        allConditions.Add(this.astFactory.AndOperator(subConditions));
 
                         conditions = subConditions;
                     }
@@ -85,7 +85,7 @@ namespace MethodQuery
                     conditions.Add(condition);
                 }
 
-                ast.Add(this.astFactory.Where(allConditions));
+                ast.Add(this.astFactory.Where(new List<AstNode>() {  this.astFactory.OrOperator(allConditions) } ));
 
                 //                if (parameters.Count > 1)
                 //                {
