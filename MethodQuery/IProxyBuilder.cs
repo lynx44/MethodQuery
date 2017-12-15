@@ -94,13 +94,20 @@ namespace MethodQuery
             }
         }
 
-        private object GetParameterValue(IInvocation invocation, ParameterInfo parameter)
+        private object GetParameterValue(IInvocation invocation, MethodParameter parameter)
         {
-            return invocation.GetArgumentValue(
+            var rootParameterValue = invocation.GetArgumentValue(
                 invocation.Method.GetParameters().
                     Select((p, i) => new Tuple<ParameterInfo, int>(p, i)).
-                    First(t => t.Item1.Name == parameter.Name).
+                    First(t => t.Item1.Name == parameter.ParameterPath.ParameterInfo.Name).
                     Item2);
+            object finalValue = rootParameterValue;
+            foreach (var propertyInfo in parameter.ParameterPath.PropertyPath)
+            {
+                finalValue = propertyInfo.GetMethod.Invoke(finalValue, new object[0]);
+            }
+
+            return finalValue;
         }
     }
 

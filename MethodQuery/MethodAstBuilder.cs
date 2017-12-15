@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using MethodQuery.Ast;
+using MethodQuery.Extensions;
 
 namespace MethodQuery
 {
@@ -31,7 +32,14 @@ namespace MethodQuery
 
             if (method.Parameters.Length > 0)
             {
-                var parameters = this.BuildWhereClause(method, ast);
+                var parameters = this.BuildWhereClause(method.Parameters.Select(p => 
+                    new MethodParameter(p.Name, p.ParameterType)
+                    {
+                        ParameterPath = new ParameterPath()
+                        {
+                            ParameterInfo = p
+                        }
+                    }), ast);
                 result.Parameters = parameters;
             }
 
@@ -39,58 +47,104 @@ namespace MethodQuery
             return result;
         }
 
-        private List<MethodAstParamMap> BuildWhereClause(MethodIntent method, List<AstNode> ast)
+        private List<MethodAstParamMap> BuildWhereClause(IEnumerable<MethodParameter> parameterList, List<AstNode> ast)
         {
             var parameters = new List<MethodAstParamMap>();
             var conditions = new List<AstNode>();
             var allConditions = conditions;
 
-            for (int i = 0; i < method.Parameters.Length; i++)
-            {
-                var parameterInfo = method.Parameters.ElementAt(i);
-                var parameterDescriptor = this.parameterDescriptorParser.Describe(parameterInfo);
-                var namedParameter = this.astFactory.NamedParameter(parameterDescriptor.ParameterName);
-                parameters.Add(new MethodAstParamMap()
-                {
-                    AstNamedParameter = namedParameter,
-                    MethodParameter = parameterInfo
-                });
-
-                AstNode condition;
-                if (parameterInfo.ParameterType != typeof(string) &&
-                    typeof(System.Collections.IEnumerable).IsAssignableFrom(parameterInfo.ParameterType))
-                {
-                    condition = this.astFactory.InPredicate(new List<AstNode>()
-                    {
-                        this.astFactory.ColumnIdentifier(parameterDescriptor.ColumnName),
-                        namedParameter
-                    });
-                }
-                else
-                {
-                    condition = this.astFactory.EqualsOperator(new List<AstNode>()
-                    {
-                        this.astFactory.ColumnIdentifier(parameterDescriptor.ColumnName),
-                        namedParameter
-                    });
-                }
-
-                if (!conditions.Any() ||
-                    parameterDescriptor.Attributes.HasFlag(ParameterDescriptorAttributes.OrOperator))
-                {
-                    var subConditions = new List<AstNode>();
-                    allConditions.Add(this.astFactory.AndOperator(subConditions));
-
-                    conditions = subConditions;
-                }
-
-                conditions.Add(condition);
-            }
+            this.ParseParameterClause(parameterList, parameters, conditions, allConditions);
 
             ast.Add(this.astFactory.Where(new List<AstNode>() { this.astFactory.OrOperator(allConditions) }));
 
             return parameters;
         }
+
+        private void ParseParameterClause(IEnumerable<MethodParameter> parameterList, List<MethodAstParamMap> parameters, List<AstNode> conditions, List<AstNode> allConditions)
+        {
+            for (int i = 0; i < parameterList.Count(); i++)
+            {
+                var parameterInfo = parameterList.ElementAt(i);
+                if (parameterInfo.ParameterType.IsSqlParameterType())
+                {
+                    var parameterDescriptor = this.parameterDescriptorParser.Describe(parameterInfo);
+                    var namedParameter = this.astFactory.NamedParameter(parameterDescriptor.ParameterName);
+                    parameters.Add(new MethodAstParamMap()
+                    {
+                        AstNamedParameter = namedParameter,
+                        MethodParameter = parameterInfo
+                    });
+
+                    AstNode condition;
+                    if (parameterInfo.ParameterType != typeof(string) &&
+                        typeof(System.Collections.IEnumerable).IsAssignableFrom(parameterInfo.ParameterType))
+                    {
+                        condition = this.astFactory.InPredicate(new List<AstNode>()
+                        {
+                            this.astFactory.ColumnIdentifier(parameterDescriptor.ColumnName),
+                            namedParameter
+                        });
+                    }
+                    else
+                    {
+                        condition = this.astFactory.EqualsOperator(new List<AstNode>()
+                        {
+                            this.astFactory.ColumnIdentifier(parameterDescriptor.ColumnName),
+                            namedParameter
+                        });
+                    }
+
+                    if (!conditions.Any() ||
+                        parameterDescriptor.Attributes.HasFlag(ParameterDescriptorAttributes.OrOperator))
+                    {
+                        var subConditions = new List<AstNode>();
+                        allConditions.Add(this.astFactory.AndOperator(subConditions));
+
+                        conditions = subConditions;
+                    }
+
+                    conditions.Add(condition);
+                }
+                else
+                {
+                    var classProperties = parameterInfo.ParameterType.GetProperties().Select(p => new MethodParameter(p.Name, p.PropertyType)
+                    {
+                        ParameterPath = new ParameterPath(parameterInfo.ParameterPath, p)
+                    }).ToList();
+                    this.ParseParameterClause(classProperties, parameters, conditions, allConditions);
+                }
+            }
+        }
+    }
+
+    public class ParameterPath
+    {
+        public ParameterPath()
+        {
+            this.PropertyPath = new List<PropertyInfo>();
+        }
+
+        public ParameterPath(ParameterPath parameter, params PropertyInfo[] additionalPropertyPath)
+        {
+            this.ParameterInfo = parameter.ParameterInfo;
+            this.PropertyPath = parameter.PropertyPath.Concat(additionalPropertyPath).ToList();
+        }
+
+        public ParameterInfo ParameterInfo { get; set; }
+        public List<PropertyInfo> PropertyPath { get; set; }
+    }
+
+    public class MethodParameter
+    {
+        public MethodParameter(string name, Type parameterType)
+        {
+            this.Name = name;
+            this.ParameterType = parameterType;
+        }
+
+        public string Name { get; set; }
+        public Type ParameterType { get; set; }
+        public ParameterPath ParameterPath { get; set; }
     }
 
     public class MethodAstResult
@@ -108,7 +162,7 @@ namespace MethodQuery
     public class MethodAstParamMap
     {
         public NamedParameter AstNamedParameter { get; set; }
-        public ParameterInfo MethodParameter { get; set; }
+        public MethodParameter MethodParameter { get; set; }
         public ParameterDescriptor ParameterDescriptor { get; set; }
     }
 
@@ -128,7 +182,7 @@ namespace MethodQuery
 
     public class ParameterDescriptorParser
     {
-        public ParameterDescriptor Describe(ParameterInfo parameter)
+        internal ParameterDescriptor Describe(MethodParameter parameter)
         {
             var columnName = parameter.Name;
             var isOrOperator = usesOrOperatorConvention(parameter);
@@ -148,7 +202,7 @@ namespace MethodQuery
             };
         }
 
-        private static bool usesOrOperatorConvention(ParameterInfo parameter)
+        private static bool usesOrOperatorConvention(MethodParameter parameter)
         {
             return parameter.Name.StartsWith("or", StringComparison.InvariantCultureIgnoreCase) &&
                    char.IsUpper(parameter.Name.TrimStart("or".ToCharArray())[0]);
