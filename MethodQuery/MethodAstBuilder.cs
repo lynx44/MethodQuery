@@ -28,83 +28,79 @@ namespace MethodQuery
             var ast = new List<AstNode> { selectStatement, fromStatement };
 
             var result = new MethodAstResult();
+
+            if (method.Parameters.Length > 0)
+            {
+                var parameters = this.BuildWhereClause(method, ast);
+                result.Parameters = parameters;
+            }
+
+            result.Ast = ast;
+            return result;
+        }
+
+        private List<MethodAstParamMap> BuildWhereClause(MethodIntent method, List<AstNode> ast)
+        {
             var parameters = new List<MethodAstParamMap>();
+            var conditions = new List<AstNode>();
+            var allConditions = conditions;
 
-            if(method.Parameters.Length > 0) { 
-                var conditions = new List<AstNode>();
-                var allConditions = conditions;
-                
-                for (int i = 0; i < method.Parameters.Length; i++)
+            for (int i = 0; i < method.Parameters.Length; i++)
+            {
+                var parameterInfo = method.Parameters.ElementAt(i);
+                var parameterDescriptor = this.parameterDescriptorParser.Describe(parameterInfo);
+                var namedParameter = this.astFactory.NamedParameter(parameterDescriptor.ParameterName);
+                parameters.Add(new MethodAstParamMap()
                 {
-                    var parameterInfo = method.Parameters.ElementAt(i);
-                    var parameterDescriptor = this.parameterDescriptorParser.Describe(parameterInfo);
-                    var namedParameter = this.astFactory.NamedParameter(parameterDescriptor.ParameterName);
-                    parameters.Add(new MethodAstParamMap()
+                    AstNamedParameter = namedParameter,
+                    MethodParameter = parameterInfo
+                });
+
+                AstNode condition;
+                if (parameterInfo.ParameterType != typeof(string) &&
+                    typeof(System.Collections.IEnumerable).IsAssignableFrom(parameterInfo.ParameterType))
+                {
+                    condition = this.astFactory.InPredicate(new List<AstNode>()
                     {
-                        AstNamedParameter = namedParameter,
-                        MethodParameter = parameterInfo
+                        this.astFactory.ColumnIdentifier(parameterDescriptor.ColumnName),
+                        namedParameter
                     });
-
-                    AstNode condition;
-                    if (parameterInfo.ParameterType != typeof(string) && typeof(System.Collections.IEnumerable).IsAssignableFrom(parameterInfo.ParameterType))
+                }
+                else
+                {
+                    condition = this.astFactory.EqualsOperator(new List<AstNode>()
                     {
-                        condition = this.astFactory.InPredicate(new List<AstNode>()
-                        {
-                            this.astFactory.ColumnIdentifier(parameterDescriptor.ColumnName),
-                            namedParameter
-                        });
-                    }
-                    else
-                    {
-                        condition = this.astFactory.EqualsOperator(new List<AstNode>()
-                        {
-                            this.astFactory.ColumnIdentifier(parameterDescriptor.ColumnName),
-                            namedParameter
-                        });
-                    }
-
-//                    var previousOperatorMethod = operatorMethod;
-//                    if (parameterDescriptor.Attributes.HasFlag(ParameterDescriptorAttributes.OrOperator))
-//                    {
-//                        operatorMethod = this.astFactory.OrOperator;
-//                    }
-//                    else
-//                    {
-//                        operatorMethod = this.astFactory.AndOperator;
-//                    }
-
-                    if (!conditions.Any() || 
-                        parameterDescriptor.Attributes.HasFlag(ParameterDescriptorAttributes.OrOperator))
-                    {
-                        var subConditions = new List<AstNode>();
-                        allConditions.Add(this.astFactory.AndOperator(subConditions));
-
-                        conditions = subConditions;
-                    }
-
-                    conditions.Add(condition);
+                        this.astFactory.ColumnIdentifier(parameterDescriptor.ColumnName),
+                        namedParameter
+                    });
                 }
 
-                ast.Add(this.astFactory.Where(new List<AstNode>() {  this.astFactory.OrOperator(allConditions) } ));
+                if (!conditions.Any() ||
+                    parameterDescriptor.Attributes.HasFlag(ParameterDescriptorAttributes.OrOperator))
+                {
+                    var subConditions = new List<AstNode>();
+                    allConditions.Add(this.astFactory.AndOperator(subConditions));
 
-                //                if (parameters.Count > 1)
-                //                {
-                //                    ast.Add(this.astFactory.Where(new List<AstNode>() { operatorMethod(conditions) }));
-                //                }
-                //                else
-                //                {
-                //                    ast.Add(this.astFactory.Where(conditions));
-                //                }
+                    conditions = subConditions;
+                }
+
+                conditions.Add(condition);
             }
-            
-            result.Ast = ast;
-            result.Parameters = parameters;
-            return result;
+
+            ast.Add(this.astFactory.Where(new List<AstNode>() { this.astFactory.OrOperator(allConditions) }));
+
+            return parameters;
         }
     }
 
     public class MethodAstResult
     {
+        public MethodAstResult()
+        {
+            this.Ast = new List<AstNode>();
+            this.Parameters = new List<MethodAstParamMap>();
+        }
+
         public IEnumerable<AstNode> Ast { get; set; }
         public IEnumerable<MethodAstParamMap> Parameters { get; set; }
     }
