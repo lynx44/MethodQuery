@@ -53,15 +53,36 @@ namespace MethodQuery
             var conditions = new List<AstNode>();
             var allConditions = conditions;
 
-            this.ParseParameterClause(parameterList, parameters, conditions, allConditions);
+            this.ParseParameterClause(parameterList, parameters, conditions);
 
-            ast.Add(this.astFactory.Where(new List<AstNode>() { this.astFactory.OrOperator(allConditions) }));
+            ast.Add(this.astFactory.Where(allConditions));
 
             return parameters;
         }
 
-        private void ParseParameterClause(IEnumerable<MethodParameter> parameterList, List<MethodAstParamMap> parameters, List<AstNode> conditions, List<AstNode> allConditions)
+        private void ParseParameterClause(IEnumerable<MethodParameter> parameterList, List<MethodAstParamMap> parameters, List<AstNode> conditions)
         {
+            List<AstNode> allConditions;
+            if (parameterList.Any(p =>
+                        this.parameterDescriptorParser.Describe(p).
+                            Attributes.HasFlag(ParameterDescriptorAttributes.OrOperator)))
+            {
+                var subConditions = new List<AstNode>();
+                var andConditions = new List<AstNode>() { this.astFactory.AndOperator(subConditions) };
+                conditions.Add(this.astFactory.OrOperator(andConditions));
+
+                allConditions = andConditions;
+                conditions = subConditions;
+            }
+            else
+            {
+                var subConditions = new List<AstNode>();
+                conditions.Add(this.astFactory.AndOperator(subConditions));
+
+                conditions = subConditions;
+                allConditions = subConditions;
+            }
+
             for (int i = 0; i < parameterList.Count(); i++)
             {
                 var parameterInfo = parameterList.ElementAt(i);
@@ -94,8 +115,7 @@ namespace MethodQuery
                         });
                     }
 
-                    if (!conditions.Any() ||
-                        parameterDescriptor.Attributes.HasFlag(ParameterDescriptorAttributes.OrOperator))
+                    if (parameterDescriptor.Attributes.HasFlag(ParameterDescriptorAttributes.OrOperator))
                     {
                         var subConditions = new List<AstNode>();
                         allConditions.Add(this.astFactory.AndOperator(subConditions));
@@ -111,7 +131,7 @@ namespace MethodQuery
                     {
                         ParameterPath = new ParameterPath(parameterInfo.ParameterPath, p)
                     }).ToList();
-                    this.ParseParameterClause(classProperties, parameters, conditions, allConditions);
+                    this.ParseParameterClause(classProperties, parameters, conditions);
                 }
             }
         }
@@ -190,7 +210,8 @@ namespace MethodQuery
             {
                 columnName = 
                     parameter.Name
-                        .TrimStart("or".ToCharArray());
+                        .TrimStart("or".ToCharArray())
+                        .TrimStart("Or".ToCharArray());
                 columnName = char.ToLowerInvariant(columnName[0]) + columnName.Substring(1);
             }
 
