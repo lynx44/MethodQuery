@@ -86,6 +86,7 @@ namespace MethodQuery
             for (int i = 0; i < parameterList.Count(); i++)
             {
                 var parameterInfo = parameterList.ElementAt(i);
+
                 var parameterDescriptor = this.parameterDescriptorParser.Describe(parameterInfo);
                 if (parameterDescriptor.Attributes.HasFlag(ParameterDescriptorAttributes.OrOperator))
                 {

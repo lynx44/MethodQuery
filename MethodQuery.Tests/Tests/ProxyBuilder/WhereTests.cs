@@ -109,7 +109,7 @@ namespace MethodQuery.Tests.Tests
         }
 
         [Test]
-        public void Where_WhenParameterIncludesOrPrefix_UsesOrOperator()
+        public void Where_WhenBasicOrBasicParameters_UsesOrOperator()
         {
             this.dataSeedHelper.SeedTable(new Person()
             {
@@ -130,7 +130,7 @@ namespace MethodQuery.Tests.Tests
         }
 
         [Test]
-        public void Where_WhenParameterIncludesMixedOrPrefixes_UsesExpectedOperators()
+        public void Where_WhenBasicAndBasicOrBasicParameters_UsesExpectedOperators()
         {
             this.dataSeedHelper.SeedTable(new Person()
             {
@@ -165,7 +165,7 @@ namespace MethodQuery.Tests.Tests
         }
 
         [Test]
-        public void Where_WhenParameterUsesComplexConditions_UsesExpectedOperators()
+        public void Where_WhenComplexAndParameter_UsesExpectedOperators()
         {
             this.dataSeedHelper.SeedTable(new Person()
             {
@@ -205,7 +205,7 @@ namespace MethodQuery.Tests.Tests
         }
 
         [Test]
-        public void Where_WhenParameterUsesComplexOrWithSimpleAndCondition_UsesExpectedOperators()
+        public void Where_WhenComplexOrAndBasicParameters_UsesExpectedOperators()
         {
             this.dataSeedHelper.SeedTable(new Person()
             {
@@ -246,7 +246,7 @@ namespace MethodQuery.Tests.Tests
         }
 
         [Test]
-        public void Where_WhenParameterUsesTwoComplexOrConditions_UsesExpectedOperators()
+        public void Where_WhenComplexAndOrComplexAndParameters_UsesExpectedOperators()
         {
             this.dataSeedHelper.SeedTable(new Person()
             {
@@ -302,6 +302,7 @@ namespace MethodQuery.Tests.Tests
         IEnumerable<Person> GetByAddressAndCity(AddressAndCity addressAndCity);
         IEnumerable<Person> GetByAddressOrCityAndName(AddressOrCity addressAndCity, string name);
         IEnumerable<Person> GetByAddressAndCityOrNameAndCity(AddressAndCity addressAndCity, NameAndCity orNameAndCity);
+        IEnumerable<Person> GetByAddressAndCityOrNameAndCityOrAddressOrCity(AddressAndCity addressAndCity, NameAndCity orNameAndCity, AddressOrCity orAddressOrCity);
     }
 
     public class AddressAndCity
