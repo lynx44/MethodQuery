@@ -205,7 +205,7 @@ namespace MethodQuery.Tests.Tests
         }
 
         [Test]
-        public void Where_WhenParameterUsesComplexOrConditions_UsesExpectedOperators()
+        public void Where_WhenParameterUsesComplexOrWithSimpleAndCondition_UsesExpectedOperators()
         {
             this.dataSeedHelper.SeedTable(new Person()
             {
@@ -244,6 +244,51 @@ namespace MethodQuery.Tests.Tests
             Assert.AreEqual(2, results.Count());
             Assert.IsTrue(Enumerable.SequenceEqual(new [] { 3, 4 }, results.Select(s => s.Id)));
         }
+
+        [Test]
+        public void Where_WhenParameterUsesTwoComplexOrConditions_UsesExpectedOperators()
+        {
+            this.dataSeedHelper.SeedTable(new Person()
+            {
+                Id = 1,
+                Name = "TestUser1",
+                Address = "123 Fake St",
+                City = "Seattle"
+            }, new Person()
+            {
+                Id = 2,
+                Name = "TestUser2",
+                Address = "123 Fake St",
+                City = "Seattle"
+            }, new Person()
+            {
+                Id = 3,
+                Name = "TestUser",
+                Address = "456 Fake St",
+                City = "Seattle"
+            }, new Person()
+            {
+                Id = 4,
+                Name = "TestUser",
+                Address = "123 Fake St",
+                City = "Portland"
+            });
+
+            var results = this.repository.GetByAddressAndCityOrNameAndCity(
+                new AddressAndCity()
+                {
+                    Address = "123 Fake St",
+                    City = "Seattle"
+                },
+                new NameAndCity()
+                {
+                    Name = "TestUser",
+                    City = "Seattle"
+                });
+
+            Assert.AreEqual(3, results.Count());
+            Assert.IsTrue(Enumerable.SequenceEqual(new [] { 1, 2, 3 }, results.Select(s => s.Id)));
+        }
     }
 
     public interface IWhereRepository
@@ -256,6 +301,7 @@ namespace MethodQuery.Tests.Tests
         IEnumerable<Person> GetByAddressAndCityOrName(string address, string city, string orName);
         IEnumerable<Person> GetByAddressAndCity(AddressAndCity addressAndCity);
         IEnumerable<Person> GetByAddressOrCityAndName(AddressOrCity addressAndCity, string name);
+        IEnumerable<Person> GetByAddressAndCityOrNameAndCity(AddressAndCity addressAndCity, NameAndCity orNameAndCity);
     }
 
     public class AddressAndCity

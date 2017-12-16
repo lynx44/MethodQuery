@@ -86,9 +86,17 @@ namespace MethodQuery
             for (int i = 0; i < parameterList.Count(); i++)
             {
                 var parameterInfo = parameterList.ElementAt(i);
+                var parameterDescriptor = this.parameterDescriptorParser.Describe(parameterInfo);
+                if (parameterDescriptor.Attributes.HasFlag(ParameterDescriptorAttributes.OrOperator))
+                {
+                    var subConditions = new List<AstNode>();
+                    allConditions.Add(this.astFactory.AndOperator(subConditions));
+
+                    conditions = subConditions;
+                }
+
                 if (parameterInfo.ParameterType.IsSqlParameterType())
                 {
-                    var parameterDescriptor = this.parameterDescriptorParser.Describe(parameterInfo);
                     var namedParameter = this.astFactory.NamedParameter(parameterDescriptor.ParameterName);
                     parameters.Add(new MethodAstParamMap()
                     {
@@ -114,15 +122,7 @@ namespace MethodQuery
                             namedParameter
                         });
                     }
-
-                    if (parameterDescriptor.Attributes.HasFlag(ParameterDescriptorAttributes.OrOperator))
-                    {
-                        var subConditions = new List<AstNode>();
-                        allConditions.Add(this.astFactory.AndOperator(subConditions));
-
-                        conditions = subConditions;
-                    }
-
+                    
                     conditions.Add(condition);
                 }
                 else
