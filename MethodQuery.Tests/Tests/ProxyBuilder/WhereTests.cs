@@ -351,6 +351,45 @@ namespace MethodQuery.Tests.Tests
             Assert.AreEqual(5, results.Count());
             Assert.IsTrue(Enumerable.SequenceEqual(new [] { 1, 2, 3, 4, 5 }, results.Select(s => s.Id)));
         }
+
+        [Test]
+        public void Where_WhenComplexOrNestedComplexAndParameter_UsesExpectedOperators()
+        {
+            this.dataSeedHelper.SeedTable(new Person()
+            {
+                Id = 1,
+                Name = "TestUser2",
+                Address = "123 Fake St",
+                City = "Seattle"
+            }, new Person()
+            {
+                Id = 2,
+                Name = "TestUser",
+                Address = "456 Fake St",
+                City = "Santa Fe"
+            }, new Person()
+            {
+                Id = 3,
+                Name = "TestUser3",
+                Address = "456 Fake St",
+                City = "Portland"
+            });
+
+            var results = this.repository.GetByNameOrAddressAndCity(
+                new NameOrAddressAndCity()
+                {
+                    Name = "TestUser",
+                    OrAddressAndCity =
+                        new AddressAndCity()
+                        {
+                            Address = "123 Fake St",
+                            City = "Seattle"
+                        }
+                });
+
+            Assert.AreEqual(2, results.Count());
+            Assert.IsTrue(Enumerable.SequenceEqual(new [] { 1, 2 }, results.Select(s => s.Id)));
+        }
     }
 
     public interface IWhereRepository
@@ -365,6 +404,7 @@ namespace MethodQuery.Tests.Tests
         IEnumerable<Person> GetByAddressOrCityAndName(AddressOrCity addressAndCity, string name);
         IEnumerable<Person> GetByAddressAndCityOrNameAndCity(AddressAndCity addressAndCity, NameAndCity orNameAndCity);
         IEnumerable<Person> GetByAddressAndCityOrNameAndCityOrAddressOrCity(AddressAndCity addressAndCity, NameAndCity orNameAndCity, AddressOrCity orAddressOrCity);
+        IEnumerable<Person> GetByNameOrAddressAndCity(NameOrAddressAndCity nameOrAddressAndCity);
     }
 
     public class AddressAndCity
@@ -383,5 +423,11 @@ namespace MethodQuery.Tests.Tests
     {
         public string Name { get; set; }
         public string City { get; set; }
+    }
+
+    public class NameOrAddressAndCity
+    {
+        public string Name { get; set; }
+        public AddressAndCity OrAddressAndCity { get; set; }
     }
 }
