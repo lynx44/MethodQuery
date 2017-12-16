@@ -166,6 +166,8 @@ namespace MethodQuery
         public string Name { get; set; }
         public Type ParameterType { get; set; }
         public ParameterPath ParameterPath { get; set; }
+
+        public string FullName => $"{this.ParameterPath.ParameterInfo.Name}{string.Join("", this.ParameterPath.PropertyPath?.Select(p => p.Name) ?? new List<string>())}";
     }
 
     public class MethodAstResult
@@ -211,15 +213,15 @@ namespace MethodQuery
             {
                 columnName = 
                     parameter.Name
-                        .TrimStart("or".ToCharArray())
-                        .TrimStart("Or".ToCharArray());
+                        .TrimStart("Or".ToCharArray())
+                        .TrimStart("or".ToCharArray());
                 columnName = char.ToLowerInvariant(columnName[0]) + columnName.Substring(1);
             }
 
             return new ParameterDescriptor()
             {
                 ColumnName = columnName,
-                ParameterName = columnName,
+                ParameterName = parameter.FullName,
                 Attributes = isOrOperator ? ParameterDescriptorAttributes.OrOperator : 0
             };
         }

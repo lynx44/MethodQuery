@@ -289,6 +289,68 @@ namespace MethodQuery.Tests.Tests
             Assert.AreEqual(3, results.Count());
             Assert.IsTrue(Enumerable.SequenceEqual(new [] { 1, 2, 3 }, results.Select(s => s.Id)));
         }
+
+        [Test]
+        public void Where_WhenComplexAndOrComplexAndOrComplexOrParameters_UsesExpectedOperators()
+        {
+            this.dataSeedHelper.SeedTable(new Person()
+            {
+                Id = 1,
+                Name = "TestUser1",
+                Address = "123 Fake St",
+                City = "Seattle"
+            }, new Person()
+            {
+                Id = 2,
+                Name = "TestUser2",
+                Address = "123 Fake St",
+                City = "Seattle"
+            }, new Person()
+            {
+                Id = 3,
+                Name = "TestUser",
+                Address = "456 Fake St",
+                City = "Seattle"
+            }, new Person()
+            {
+                Id = 4,
+                Name = "TestUser",
+                Address = "123 Fake St",
+                City = "Portland"
+            }, new Person()
+            {
+                Id = 5,
+                Name = "TestUser4",
+                Address = "456 Fake St",
+                City = "Portland"
+            }, new Person()
+            {
+                Id = 6,
+                Name = "TestUser4",
+                Address = "456 Fake St",
+                City = "Santa Fe"
+            });
+
+            var results = this.repository.GetByAddressAndCityOrNameAndCityOrAddressOrCity(
+                new AddressAndCity()
+                {
+                    Address = "123 Fake St",
+                    City = "Seattle"
+                },
+                new NameAndCity()
+                {
+                    Name = "TestUser",
+                    City = "Seattle"
+                },
+                new AddressOrCity()
+                {
+                    Address = "123 Fake St",
+                    OrCity = "Portland"
+                });
+
+            Assert.AreEqual(5, results.Count());
+            Assert.IsTrue(Enumerable.SequenceEqual(new [] { 1, 2, 3, 4, 5 }, results.Select(s => s.Id)));
+        }
     }
 
     public interface IWhereRepository
