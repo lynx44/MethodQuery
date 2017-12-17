@@ -390,6 +390,177 @@ namespace MethodQuery.Tests.Tests
             Assert.AreEqual(2, results.Count());
             Assert.IsTrue(Enumerable.SequenceEqual(new [] { 1, 2 }, results.Select(s => s.Id)));
         }
+
+        [Test]
+        public void Where_WhenComplexAndNestedComplexOrAndParameter_UsesExpectedOperators()
+        {
+            this.dataSeedHelper.SeedTable(new Person()
+            {
+                Id = 1,
+                Name = "TestUser2",
+                Address = "123 Fake St",
+                City = "Seattle"
+            }, new Person()
+            {
+                Id = 2,
+                Name = "TestUser",
+                Address = "123 Fake St",
+                City = "Seattle"
+            }, new Person()
+            {
+                Id = 3,
+                Name = "TestUser3",
+                Address = "123 Fake St",
+                City = "Seattle"
+            });
+
+            var results = this.repository.GetByIdOrNameAndAddressAndCity(
+                new IdOrNameAndAddressAndCity()
+                {
+                    IdOrName = new IdOrName()
+                    {
+                        Id = 1,
+                        OrName = "TestUser"
+                    },
+                    AddressAndCity =
+                        new AddressAndCity()
+                        {
+                            Address = "123 Fake St",
+                            City = "Seattle"
+                        }
+                });
+
+            Assert.AreEqual(2, results.Count());
+            Assert.IsTrue(Enumerable.SequenceEqual(new [] { 1, 2 }, results.Select(s => s.Id)));
+        }
+
+        [Test]
+        public void Where_WhenBasicAndNestedComplexOrNestedComplexAndParameter_UsesExpectedOperators()
+        {
+            this.dataSeedHelper.SeedTable(new Person()
+            {
+                Id = 1,
+                Name = "TestUser2",
+                Address = "123 Fake St",
+                City = "Seattle"
+            }, new Person()
+            {
+                Id = 2,
+                Name = "TestUser",
+                Address = "123 Fake St",
+                City = "Seattle"
+            }, new Person()
+            {
+                Id = 3,
+                Name = "TestUser3",
+                Address = "123 Fake St",
+                City = "Seattle"
+            });
+
+            var results = this.repository.GetByIdAndNameOrAddressAndCity(
+                new IdAndNameOrAddressAndCity()
+                {
+                    Id = 1,
+                    NameOrAddressAndCity = 
+                        new NameOrAddressAndCity()
+                        {
+                            Name = "TestUser",
+                            OrAddressAndCity = new AddressAndCity()
+                            {
+                                Address = "123 Fake St",
+                                City = "Seattle"
+                            }
+                        }
+                });
+
+            Assert.AreEqual(1, results.Count());
+            Assert.IsTrue(Enumerable.SequenceEqual(new [] { 1 }, results.Select(s => s.Id)));
+        }
+
+        [Test]
+        public void Where_WhenBasicAndNestedComplexOrNestedComplexAndParameter_Scenario2_UsesExpectedOperators()
+        {
+            this.dataSeedHelper.SeedTable(new Person()
+            {
+                Id = 1,
+                Name = "TestUser2",
+                Address = "123 Fake St",
+                City = "Seattle"
+            }, new Person()
+            {
+                Id = 2,
+                Name = "TestUser",
+                Address = "123 Fake St",
+                City = "Seattle"
+            }, new Person()
+            {
+                Id = 3,
+                Name = "TestUser3",
+                Address = "123 Fake St",
+                City = "Seattle"
+            });
+
+            var results = this.repository.GetByIdAndNameOrAddressAndCity(
+                new IdAndNameOrAddressAndCity()
+                {
+                    Id = 1,
+                    NameOrAddressAndCity = 
+                        new NameOrAddressAndCity()
+                        {
+                            Name = "TestUser2",
+                            OrAddressAndCity = new AddressAndCity()
+                            {
+                                Address = "124 Fake St",
+                                City = "Seattle"
+                            }
+                        }
+                });
+
+            Assert.AreEqual(1, results.Count());
+            Assert.IsTrue(Enumerable.SequenceEqual(new [] { 1 }, results.Select(s => s.Id)));
+        }
+
+        [Test]
+        public void Where_WhenBasicAndNestedComplexOrNestedComplexAndParameter_ReturnsNone()
+        {
+            this.dataSeedHelper.SeedTable(new Person()
+            {
+                Id = 1,
+                Name = "TestUser2",
+                Address = "123 Fake St",
+                City = "Seattle"
+            }, new Person()
+            {
+                Id = 2,
+                Name = "TestUser",
+                Address = "123 Fake St",
+                City = "Seattle"
+            }, new Person()
+            {
+                Id = 3,
+                Name = "TestUser3",
+                Address = "123 Fake St",
+                City = "Seattle"
+            });
+
+            var results = this.repository.GetByIdAndNameOrAddressAndCity(
+                new IdAndNameOrAddressAndCity()
+                {
+                    Id = 1,
+                    NameOrAddressAndCity = 
+                        new NameOrAddressAndCity()
+                        {
+                            Name = "TestUser3",
+                            OrAddressAndCity = new AddressAndCity()
+                            {
+                                Address = "124 Fake St",
+                                City = "Seattle"
+                            }
+                        }
+                });
+
+            Assert.AreEqual(0, results.Count());
+        }
     }
 
     public interface IWhereRepository
@@ -405,6 +576,8 @@ namespace MethodQuery.Tests.Tests
         IEnumerable<Person> GetByAddressAndCityOrNameAndCity(AddressAndCity addressAndCity, NameAndCity orNameAndCity);
         IEnumerable<Person> GetByAddressAndCityOrNameAndCityOrAddressOrCity(AddressAndCity addressAndCity, NameAndCity orNameAndCity, AddressOrCity orAddressOrCity);
         IEnumerable<Person> GetByNameOrAddressAndCity(NameOrAddressAndCity nameOrAddressAndCity);
+        IEnumerable<Person> GetByIdOrNameAndAddressAndCity(IdOrNameAndAddressAndCity idOrNameAndAddressAndCity);
+        IEnumerable<Person> GetByIdAndNameOrAddressAndCity(IdAndNameOrAddressAndCity idAndNameOrAddressAndCity);
     }
 
     public class AddressAndCity
@@ -429,5 +602,23 @@ namespace MethodQuery.Tests.Tests
     {
         public string Name { get; set; }
         public AddressAndCity OrAddressAndCity { get; set; }
+    }
+
+    public class IdOrName
+    {
+        public int Id { get; set; }
+        public string OrName { get; set; }
+    }
+
+    public class IdOrNameAndAddressAndCity
+    {
+        public IdOrName IdOrName { get; set; }
+        public AddressAndCity AddressAndCity { get; set; }
+    }
+
+    public class IdAndNameOrAddressAndCity
+    {
+        public int Id { get; set; }
+        public NameOrAddressAndCity NameOrAddressAndCity { get; set; }
     }
 }
