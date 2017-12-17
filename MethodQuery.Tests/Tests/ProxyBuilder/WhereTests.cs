@@ -561,6 +561,45 @@ namespace MethodQuery.Tests.Tests
 
             Assert.AreEqual(0, results.Count());
         }
+        
+        [Test]
+        public void Where_WhenActionAndParameter_UsesExpectedOperators()
+        {
+            this.dataSeedHelper.SeedTable(new Person()
+            {
+                Id = 1,
+                Name = "TestUser",
+                Address = "123 Fake St",
+                City = "Seattle"
+            }, new Person()
+            {
+                Id = 2,
+                Name = "TestUser2",
+                Address = "123 Fake St",
+                City = "Seattle"
+            }, new Person()
+            {
+                Id = 3,
+                Name = "TestUser",
+                Address = "456 Fake St",
+                City = "Seattle"
+            }, new Person()
+            {
+                Id = 4,
+                Name = "TestUser3",
+                Address = "123 Fake St",
+                City = "Portland"
+            });
+
+            var results = this.repository.GetByAddressAndCityAction(p =>
+            {
+                p.Address = "123 Fake St";
+                p.City = "Seattle";
+            });
+
+            Assert.AreEqual(2, results.Count());
+            Assert.IsTrue(Enumerable.SequenceEqual(new[] { 1, 2 }, results.Select(s => s.Id)));
+        }
     }
 
     public interface IWhereRepository
@@ -578,6 +617,7 @@ namespace MethodQuery.Tests.Tests
         IEnumerable<Person> GetByNameOrAddressAndCity(NameOrAddressAndCity nameOrAddressAndCity);
         IEnumerable<Person> GetByIdOrNameAndAddressAndCity(IdOrNameAndAddressAndCity idOrNameAndAddressAndCity);
         IEnumerable<Person> GetByIdAndNameOrAddressAndCity(IdAndNameOrAddressAndCity idAndNameOrAddressAndCity);
+        IEnumerable<Person> GetByAddressAndCityAction(Action<AddressAndCity> addressAndCity);
     }
 
     public class AddressAndCity

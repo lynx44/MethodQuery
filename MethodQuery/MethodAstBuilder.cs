@@ -128,7 +128,14 @@ namespace MethodQuery
                 }
                 else
                 {
-                    var classProperties = parameterInfo.ParameterType.GetProperties().Select(p => new MethodParameter(p.Name, p.PropertyType)
+                    Type parameterType = parameterInfo.ParameterType;
+                    Type actionTypeArg;
+                    if (parameterType.TryGetActionType(out actionTypeArg))
+                    {
+                        parameterType = actionTypeArg;
+                    }
+
+                    var classProperties = parameterType.GetProperties().Select(p => new MethodParameter(p.Name, p.PropertyType)
                     {
                         ParameterPath = new ParameterPath(parameterInfo.ParameterPath, p)
                     }).ToList();

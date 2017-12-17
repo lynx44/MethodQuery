@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Castle.DynamicProxy;
 using MethodQuery.Ast;
+using MethodQuery.Extensions;
 
 namespace MethodQuery
 {
@@ -96,12 +97,25 @@ namespace MethodQuery
 
         private object GetParameterValue(IInvocation invocation, MethodParameter parameter)
         {
+            var parameterInfoTuple = invocation.Method.GetParameters().
+                Select((p, i) => new Tuple<ParameterInfo, int>(p, i)).
+                First(t => t.Item1.Name == parameter.ParameterPath.ParameterInfo.Name);
             var rootParameterValue = invocation.GetArgumentValue(
-                invocation.Method.GetParameters().
-                    Select((p, i) => new Tuple<ParameterInfo, int>(p, i)).
-                    First(t => t.Item1.Name == parameter.ParameterPath.ParameterInfo.Name).
+                parameterInfoTuple.
                     Item2);
             object finalValue = rootParameterValue;
+            Type actionType;
+            var parameterType = parameterInfoTuple.Item1.ParameterType;
+            if (parameterType.TryGetActionType(out actionType))
+            {
+                var methodInfo = parameterType.GetMethods().FirstOrDefault(m => m.Name == nameof(Action<object>.Invoke));
+//                var actionTypeConstructor = actionType.GetConstructor(BindingFlags.Public | BindingFlags.Instance, null, new Type[0], new ParameterModifier[0]);
+//                object actionTypeInstance = actionTypeConstructor.Invoke(new object[0]);
+                object actionTypeInstance = Activator.CreateInstance(actionType);
+                methodInfo.Invoke(finalValue, new [] { actionTypeInstance });
+
+                finalValue = actionTypeInstance;
+            }
             foreach (var propertyInfo in parameter.ParameterPath.PropertyPath)
             {
                 finalValue = propertyInfo.GetMethod.Invoke(finalValue, new object[0]);

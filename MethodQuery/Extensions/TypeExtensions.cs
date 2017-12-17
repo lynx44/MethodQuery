@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -47,6 +48,20 @@ namespace MethodQuery.Extensions
             }
 
             return sqlTypes.Contains(type);
+        }
+
+        public static bool TryGetActionType(this Type type, out Type actionType)
+        {
+            if (type.IsGenericType &&
+                        type.GenericTypeArguments.Length == 1 &&
+                        type.GetGenericTypeDefinition().IsAssignableFrom(typeof(Action<>)))
+            {
+                actionType = type.GenericTypeArguments.First();
+                return true;
+            }
+
+            actionType = null;
+            return false;
         }
     }
 }
