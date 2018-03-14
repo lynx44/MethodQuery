@@ -9,9 +9,10 @@ using Dapper;
 
 namespace MethodQuery.Dapper
 {
-    public class DapperEntityMaterializer<TResult> : IEntityMaterializer<TResult>
+    public class DapperEntityMaterializer<TEntity> : IEntityMaterializer<TEntity>
+        where TEntity : class
     {
-        public IEnumerable<TResult> Materialize(IDbConnection dbConnection, SqlDirective sqlDirective)
+        public IEnumerable<TEntity> Materialize(IDbConnection dbConnection, SqlDirective sqlDirective)
         {
             var sqlParams = new DynamicParameters();
             foreach (var parameter in sqlDirective.Parameters)
@@ -19,13 +20,14 @@ namespace MethodQuery.Dapper
                 sqlParams.Add(parameter.QuotedIdentifier, parameter.Value);
             }
 
-            return dbConnection.Query<TResult>(sqlDirective.Sql, (object) sqlParams);
+            return dbConnection.Query<TEntity>(sqlDirective.Sql, (object) sqlParams);
         }
     }
 
     public class DapperEntityMaterializerFactory : IEntityMaterializerFactory
     {
         public IEntityMaterializer<TEntity> Create<TEntity>()
+            where TEntity : class
         {
             return Activator.CreateInstance<DapperEntityMaterializer<TEntity>>();
         }

@@ -8,13 +8,15 @@ using System.Threading.Tasks;
 namespace MethodQuery
 {
     public interface IEntityMaterializer<TEntity>
+        where TEntity : class
     {
         IEnumerable<TEntity> Materialize(IDbConnection dbConnection, SqlDirective sqlDirective);
     }
 
     public interface IEntityMaterializerFactory
     {
-        IEntityMaterializer<TEntity> Create<TEntity>();
+        IEntityMaterializer<TEntity> Create<TEntity>()
+            where TEntity : class;
     }
 
     public class Parameter
@@ -26,15 +28,20 @@ namespace MethodQuery
 
     public class SqlDirective
     {
-        public SqlDirective(string sql, IEnumerable<Parameter> parameters)
+        public SqlDirective(string sql, Type entityType) : this(sql, entityType, new List<Parameter>())
+        {
+        }
+
+        public SqlDirective(string sql, Type entityType, IEnumerable<Parameter> parameters)
         {
             this.Sql = sql;
+            this.EntityType = entityType;
             this.Parameters = parameters;
         }
 
         public string Sql { get; set; }
         public IEnumerable<Parameter> Parameters { get; set; }
-        public Type OutputType { get; set; }
+        public Type EntityType { get; set; }
         public IEnumerable<SqlDirective> Children { get; set; }
     }
 }
