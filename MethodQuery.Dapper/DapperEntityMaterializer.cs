@@ -11,15 +11,15 @@ namespace MethodQuery.Dapper
 {
     public class DapperEntityMaterializer<TResult> : IEntityMaterializer<TResult>
     {
-        public IEnumerable<TResult> Materialize(IDbConnection dbConnection, string sql, IEnumerable<Parameter> parameters)
+        public IEnumerable<TResult> Materialize(IDbConnection dbConnection, SqlDirective sqlDirective)
         {
             var sqlParams = new DynamicParameters();
-            foreach (var parameter in parameters)
+            foreach (var parameter in sqlDirective.Parameters)
             {
                 sqlParams.Add(parameter.QuotedIdentifier, parameter.Value);
             }
 
-            return dbConnection.Query<TResult>(sql, (object) sqlParams);
+            return dbConnection.Query<TResult>(sqlDirective.Sql, (object) sqlParams);
         }
     }
 

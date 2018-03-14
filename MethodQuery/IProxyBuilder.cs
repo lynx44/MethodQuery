@@ -74,7 +74,7 @@ namespace MethodQuery
             });
             
             dbConnection.Open();
-            var result = materializeMethod.Invoke(entityMaterializer, new object[] { dbConnection, sqlStatement, parameters });
+            var result = materializeMethod.Invoke(entityMaterializer, new object[] { dbConnection, new SqlDirective(sqlStatement, parameters) });
             dbConnection.Close();
             var genericCastMethod = typeof(System.Linq.Enumerable).GetMethod(nameof(System.Linq.Enumerable.Cast), BindingFlags.Public | BindingFlags.Static);
             var castMethod = genericCastMethod.MakeGenericMethod(entityType);
