@@ -9,15 +9,15 @@ using NUnit.Framework;
 namespace MethodQuery.Tests.Tests
 {
     [TestFixture]
-    public class DefaultEntityMaterializerTests
+    public class InterfaceEntityMaterializerTests
     {
-        private DefaultEntityMaterializer<IPerson> materializer;
+        private InterfaceEntityMaterializer<IPerson> materializer;
         private DataSeedHelper dataSeedHelper;
 
         [SetUp]
         public void Setup()
         {
-            this.materializer = new DefaultEntityMaterializer<IPerson>();
+            this.materializer = new InterfaceEntityMaterializer<IPerson>();
             this.dataSeedHelper = new DataSeedHelper(ConnectionFactory.TestDb);
             this.dataSeedHelper.ClearTable(nameof(Person));
         }

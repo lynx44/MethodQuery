@@ -54,7 +54,8 @@
     <Compile Include="Ast\Clauses.cs" />
     <Compile Include="Ast\Operators.cs" />
     <Compile Include="Ast\Predicates.cs" />
-    <Compile Include="DefaultEntityMaterializer.cs" />
+    <Compile Include="EntityRelationshipAssembler.cs" />
+    <Compile Include="InterfaceEntityMaterializer.cs" />
     <Compile Include="Extensions\TypeExtensions.cs" />
     <Compile Include="MethodAstBuilder.cs" />
     <Compile Include="Ast\ObjectIdentifiers.cs" />

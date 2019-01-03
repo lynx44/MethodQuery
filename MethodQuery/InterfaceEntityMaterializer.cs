@@ -11,7 +11,7 @@ using Castle.DynamicProxy;
 
 namespace MethodQuery
 {
-    public class DefaultEntityMaterializer<TEntity> : IEntityMaterializer<TEntity>
+    public class InterfaceEntityMaterializer<TEntity> : IEntityMaterializer<TEntity>
         where TEntity : class
     {
         private ProxyGenerator proxyGenerator = new Castle.DynamicProxy.ProxyGenerator();

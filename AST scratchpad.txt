@@ -1,0 +1,31 @@
+SELECT "Id", "Name", "Address", "City" FROM "Person" WHERE "address" = @address OR "city" = @city "name" = @name
+
+
+IEnumerable<Person> GetByAddressAndCityOrName(string address, string city, string orName);
+
+((address and city) or name)
+
+or-
+  and(address, city)
+  name
+
+  
+IEnumerable<Person> GetByAddressAndCityOrName(string address, string orCity, string name);
+
+((address or city) and name)
+
+and-
+  or(address, city)
+  name
+  
+IEnumerable<Person> GetByAddressAndCityOrName(string address, string orCity, string name, string id);
+
+(((address or city) and name) and id)
+
+IEnumerable<Person> GetByAddressAndCityOrName(string address, string city, string orName, string id);
+
+(((address and city) or name) and id)
+
+or-
+  and(address, city)
+  and(name, id)
